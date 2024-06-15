@@ -1,5 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
+
 
 variable "region" {
   description = "The region Terraform deploys your instances"
@@ -72,3 +71,59 @@ variable "blue_instance_count" {
   type        = number
   default     = 2
 }
+
+#########################################
+## Adding Green files and its variables
+#########################################
+
+variable "enable_green_env" {
+  description = "Enable green environment"
+  type        = bool
+  default     = true
+}
+
+variable "green_instance_count" {
+  description = "Number of instances in green environment"
+  type        = number
+  default     = 2
+}
+
+### #################################
+## Adding Traffic Distribution vars
+####################################
+
+locals {
+  traffic_dist_map = {
+    blue = {
+      blue  = 100
+      green = 0
+    }
+    blue-90 = {
+      blue  = 90
+      green = 10
+    }
+    split = {
+      blue  = 50
+      green = 50
+    }
+    green-90 = {
+      blue  = 10
+      green = 90
+    }
+    green = {
+      blue  = 0
+      green = 100
+    }
+  }
+}
+
+variable "traffic_distribution" {
+  description = "Levels of traffic distribution"
+  type        = string
+}
+
+###################################
+##Adding keys to access AWS account
+###################################
+variable "AWS_ACCESS_KEY" {}
+variable "AWS_SECRET_KEY" {}

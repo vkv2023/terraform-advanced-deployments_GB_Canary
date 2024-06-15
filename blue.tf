@@ -1,5 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
+##Blue Environment
 
 resource "aws_instance" "blue" {
   count = var.enable_blue_env ? var.blue_instance_count : 0
@@ -9,7 +8,11 @@ resource "aws_instance" "blue" {
   subnet_id              = module.vpc.private_subnets[count.index % length(module.vpc.private_subnets)]
   vpc_security_group_ids = [module.app_security_group.security_group_id]
   user_data = templatefile("${path.module}/init-script.sh", {
-    file_content = "version 1.0 - #${count.index}"
+    ##Inintial traffic version prior to switching to GREEN
+    // file_content = "version 1.0 - #${count.index}"
+
+    ##Apended after traffic switched to Green Completely and commented above
+    file_content = "version 1.2 - #${count.index}"
   })
 
   tags = {

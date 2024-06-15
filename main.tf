@@ -1,8 +1,9 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
+###  Main file for Load Balance and its conf
 
 provider "aws" {
   region = var.region
+  access_key = var.AWS_ACCESS_KEY
+  secret_key = var.AWS_SECRET_KEY
 }
 
 data "aws_availability_zones" "available" {
@@ -15,7 +16,7 @@ data "aws_availability_zones" "available" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "3.19.0"
+#   version = "~>5.0"
 
   name = "main-vpc"
   cidr = var.vpc_cidr_block
@@ -30,7 +31,7 @@ module "vpc" {
 
 module "app_security_group" {
   source  = "terraform-aws-modules/security-group/aws//modules/web"
-  version = "4.17.1"
+  version = "5.1.2"
 
   name        = "web-sg"
   description = "Security group for web-servers with HTTP ports open within VPC"
@@ -80,6 +81,24 @@ resource "aws_lb_listener" "app" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.blue.arn
+    ##Added 4th step
+    #target_group_arn = aws_lb_target_group.blue.arn
+    ##Added for testing Canary release rather just on same LB
+    forward {
+      target_group {
+        arn    = aws_lb_target_group.blue.arn
+        weight = lookup(local.traffic_dist_map[var.traffic_distribution], "blue", 100)
+      }
+
+      target_group {
+        arn    = aws_lb_target_group.green.arn
+        weight = lookup(local.traffic_dist_map[var.traffic_distribution], "green", 0)
+      }
+
+      stickiness {
+        enabled  = false
+        duration = 1
+      }
+    }
   }
 }
